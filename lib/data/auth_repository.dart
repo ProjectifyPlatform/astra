@@ -49,19 +49,17 @@ class APIAuthRepository implements AuthRepository {
     };
 
     final resp = await http.post(url,
-      body: loginData,
-      headers: {
-        "Content-Type": "application/json",
-      }
+      body: json.encode(loginData),
+      headers: {"Content-Type": "application/json"},
     );
 
     // Handle errors.
-    if (resp.statusCode == 403) {
-      throw InvalidLogin();
-    } else if (resp.statusCode == 404) {
-      throw EmailNotFound();
-    } else if (resp.statusCode == 500) {
-      throw ServerError();
+    if (resp.statusCode == 400) {
+      // Get the first error.
+      Map<String, dynamic> errors = json.decode(resp.body)['errors'];
+      String key = errors.keys.elementAt(0);
+
+      throw InvalidLogin(errors[key][0].toString());
     }
 
     Map<String, dynamic> data = json.decode(resp.body);
@@ -92,8 +90,9 @@ class APIAuthRepository implements AuthRepository {
   }
 }
 
+class InvalidLogin implements Exception {
+  final String errorMsg;
+  const InvalidLogin(this.errorMsg);
 
-// Errors.
-class InvalidLogin extends Error {}
-class EmailNotFound extends Error {}
-class ServerError extends Error {}
+  String toString() => this.errorMsg;
+}
