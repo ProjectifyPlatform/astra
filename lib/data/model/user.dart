@@ -33,4 +33,12 @@ class User extends Equatable {
       roleId: json['role_id'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    "email": email,
+    "name": name,
+    "username": username,
+    "joinedDate": joinedDate,
+    "roleId": roleId,
+  }
 }
