@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:astra/data/model/user.dart';
 import 'package:astra/data/model/auth.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class AuthRepository {
   Future<Auth> login({
@@ -19,24 +20,36 @@ abstract class AuthRepository {
 class APIAuthRepository implements AuthRepository {
 
   @override
-  Future<bool> persistAuth(Auth auth) async {
-    // IMPLEMENT: Saving auth details.
-    await Future.delayed(Duration(seconds: 1));
-    return true;
+  Future<void> persistAuth(Auth auth) async {
+    // Get shared preferences.
+    final prefs = await SharedPreferences.getInstance();
+
+    // Set values
+    prefs.setString('accessToken', auth.accessToken);
+    prefs.setString('user', json.encode(auth.user.toJson()));
   }
 
   @override
   Future<bool> isAuthenticated() async {
-    // Simulate network delay.
-    await Future.delayed(Duration(seconds: 1));
+    final prefs = await SharedPreferences.getInstance();
+
+    final token = prefs.getString('accessToken') ?? false;
+    final user = prefs.getString('user') ?? false;
+
+    if (token && user) {
+      return true;
+    }
+
     return false;
-    // IMPLEMENT: Getting stored token and checking if user is authenticated or not.
   }
 
   @override
   Future<void> deAuthenticate() async {
     // Simulate delay
-    await Future.delayed(Duration(seconds: 1));
+    final prefs = await SharedPreferences.getInstance();
+
+    prefs.remove('accessToken');
+    prefs.remove('user');
   }
 
   @override
@@ -60,11 +73,16 @@ class APIAuthRepository implements AuthRepository {
       String key = errors.keys.elementAt(0);
 
       throw InvalidLogin(errors[key][0].toString());
+
+    } else if (resp.statusCode != 400 && resp.statusCode != 200) {
+      String errorMsg = json.decode(resp.body)['message'];
+      throw InvalidLogin(errorMsg);
     }
 
     Map<String, dynamic> data = json.decode(resp.body);
+
     String accessToken = data['access_token'];
-    User user = data['user'];
+    User user = User.fromJson(data['user']);
 
     // Use error handling when calling this Future.
     return Auth(accessToken: accessToken, user: user);
