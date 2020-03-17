@@ -12,13 +12,14 @@ part 'login_state.dart';
 part 'login_event.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  final AuthRepository repository;
+  final AuthRepository authRepository;
   final AuthBloc authBloc;
 
   LoginBloc({
-    @required this.repository,
+    @required this.authRepository,
     @required this.authBloc,
-  }): assert(repository != null && authBloc != null);
+  }): assert(authRepository != null),
+      assert(authBloc != null);
 
   @override
   LoginState get initialState => LoginInitial();
@@ -27,20 +28,23 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Stream<LoginState> mapEventToState(
     LoginEvent event,
   ) async* {
+
     if (event is LoginButtonPressed) {
       yield LoginLoading();
 
       try {
-        final Auth auth = await repository.login(
+        final Auth auth = await authRepository.login(
           email: event.email,
           password: event.password,
         );
 
         authBloc.add(LoggedIn(auth: auth));
         yield LoginInitial();
-      } catch(error) {
-        yield LoginFailure(errorMsg: error.toString());
+
+      } catch(e) {
+        yield LoginFailure(errorMsg: e.toString());
       }
     }
+
   }
 }

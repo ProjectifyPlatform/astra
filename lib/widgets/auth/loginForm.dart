@@ -15,12 +15,12 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    _submit() {
+    _onLoginButtonPressed() {
       BlocProvider.of<LoginBloc>(context).add(
         LoginButtonPressed(
           email: _emailController.text,
           password: _passwordController.text,
-        )
+        ),
       );
     }
 
@@ -29,33 +29,35 @@ class _LoginFormState extends State<LoginForm> {
         if (state is LoginFailure) {
           Scaffold.of(context).showSnackBar(
             SnackBar(
-              content: Text('$state.error'),
+              content: Text(state.errorMsg),
               backgroundColor: Colors.red,
             ),
           );
         }
       },
-
       child: BlocBuilder<LoginBloc, LoginState>(
         builder: (context, state) {
           return Form(
             child: Column(
-              children: <Widget>[
+              children: [
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: 'email'),
                   controller: _emailController,
                 ),
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Password'),
+                  decoration: InputDecoration(labelText: 'password'),
                   controller: _passwordController,
                   obscureText: true,
                 ),
                 RaisedButton(
-                  onPressed: state is! LoginLoading ? _submit() : null,
+                  onPressed: state is! LoginLoading ? _onLoginButtonPressed : null,
+
+                  child: Text('Login'),
                 ),
                 Container(
                   child: state is LoginLoading
-                  ? CircularProgressIndicator() : null
+                      ? CircularProgressIndicator()
+                      : null,
                 ),
               ],
             ),
