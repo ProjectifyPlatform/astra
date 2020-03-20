@@ -26,12 +26,12 @@ class SignUpData {
   final String name;
   final String password; 
 
-  SignUpData(
+  SignUpData({
     this.email,
     this.username,
     this.name,
     this.password,
-  );
+  });
 
   Map<String, String> toJson() => {
     "email": email,

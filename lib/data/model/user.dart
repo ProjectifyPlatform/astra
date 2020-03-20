@@ -40,5 +40,5 @@ class User extends Equatable {
     "username": username,
     "joinedDate": joinedDate,
     "roleId": roleId,
-  }
+  };
 }
